@@ -109,7 +109,6 @@ $EGREP "title" <$NFILE1 >$NFILE2
 #     NFILE2 suffled to NFILE2D in A*2. OK SAVE NFILE2D to FILESAVE in A*[34]
 if cmp -s "$NFILE2" "$FILESAVE"; then
    echo $(date "+%x-%X") "Data is the same, nothing to do..."
-   ./AutoSky2
 else
    echo $(date "+%x-%X") "New data found..."
    ./AutoSky2
