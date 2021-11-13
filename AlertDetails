@@ -1,0 +1,108 @@
+#!/bin/bash
+
+source autoskywarn.conf
+
+WX=$BASEDIR
+NFILE='/tmp/saysum.txt1'
+url="https://api.voicerss.org/?key="$voicerss_key"&hl=en-us&src="
+#
+cd $WX
+#
+# PULL THE INFORMATION FROM NWS
+/usr/bin/wget --no-check-certificate alerts.weather.gov/cap/$OFILE 2>/dev/null
+#
+# COPY THE WEIRD NAMED FILE TO SOMETHING NORMAL
+/bin/cp -f $OFILE $NFILE
+#
+# REMOVE the WEIRDLY NAMED FILE
+/bin/rm -f $OFILE
+#
+#
+OFILE='/tmp/saysum.txt1'
+TFILE='/tmp/saysum.txtt'
+NFILE='/tmp/saysum.txt2'
+#
+#
+# REMOVE THE NEW FILE NAME and TEMP FILE NAME
+/bin/rm -f $NFILE $TFILE
+#
+# COPY THE EXISTING (OLD) TEXT FILE TO THE TEMP FILE
+/bin/cp -f $OFILE $TFILE
+#
+# COPY ONLY ONE SECTION (can be multiple) OF MANY
+#   FROM THE TEMP FILE TO THE NEW FILE
+/bin/egrep "summary" <$TFILE >$NFILE
+#
+/usr/bin/wc -l <$NFILE >/tmp/saysum.wc
+RESULT=$(/bin/cat /tmp/saysum.wc)
+#
+# DIAG
+# echo $RESULT
+#
+if [ $RESULT -eq 0 ]; then
+     msg="There are no weather alerts at this time."
+     # /usr/bin/text2wave -F 8000 -otype ulaw /tmp/saysum.bo -o /tmp/saysum.ulaw
+     msgurl=$(printf "%s\n" "$url$msg" | sed 's/ /%20/g')
+     wget -q -U Mozilla -O "/tmp/saysummsg.wav" $msgurl
+     sync
+     /usr/sbin/asterisk -rvx "rpt localplay $NODE /tmp/saysummsg"
+     sync
+     exit 0
+fi
+#
+#
+OFILE='/tmp/saysum.txt2'
+TFILE='/tmp/saysum.txtt'
+NFILE='/tmp/saysum.txt3'
+#
+/bin/rm -f $NFILE $TFILE
+/bin/cp -f $OFILE $TFILE
+
+# ESTABLISH BREAKS BETWEEN SEGMENTS
+#/bin/sed -i 's%</summary>% , BREAK , %' $TFILE
+#/bin/sed -i 's%<summary>%%' $TFILE
+
+# REMOVE COUNTY CODE
+#/bin/sed -i 's/(LAC055)//' $TFILE;
+
+# CHANGE NWS to N-W-S
+# /bin/sed -i 's/National Weather Service/ N-W-S /' $WX/$TFILE;
+/bin/sed -i 's/ by NWS/ /' $TFILE
+
+# CHANGE TRAILING ", BREAK ," to ", END OF MESSAGE "
+/bin/sed -i '$s% , BREAK ,%. , END OF REPORT%' $TFILE
+
+# CHANGE "..." to " , "
+/bin/sed -i 's/\.\.\./ , /g' $TFILE
+
+# CHANGE "C[SD]T" to "C-[SD]-T"
+/bin/sed -i -e 's/ CDT / Central Daylight Time /g' $TFILE
+/bin/sed -i -e 's/ CST / Central Standard Time /g' $TFILE
+
+# CHANGE " mph" to " miles per hour"
+/bin/sed -i 's/\ mph/\ miles per hour/g' $TFILE
+
+/bin/sed -i -e 's/ winds/ wends/g' $TFILE
+/bin/sed -i -e 's/ Winds/ wends/g' $TFILE
+/bin/sed -i -e 's/<summary>//g' $TFILE
+/bin/sed -i -e 's/<\/summary>//g' $TFILE
+/bin/sed -i -e 's/\*//g' $TFILE
+/bin/sed -i -e 's/\///g' $TFILE
+
+/bin/sed -i ':a;N;$!ba;s/\n/ /g' $TFILE
+
+#GET RID OF SED TMP FILES
+/bin/rm -f sed*
+
+txt="The following message contains detailed weather alert data for "$county_name". "
+sed -i "1s/^/$txt/" $TFILE
+
+cp -f $TFILE $NFILE
+#/usr/bin/text2wave -F 8000 -otype ulaw $NFILE -o /tmp/saysum.ulaw
+msg=$(cat $NFILE)
+msgurl=$(printf "%s\n" "$url$msg" | sed 's/ /%20/g')
+wget -q -U Mozilla -O "/tmp/saysummsg.wav" $msgurl
+sox -V /tmp/saysummsg.wav -r 8000 -c 1 -t ul /tmp/saysummsg.ulaw &>/dev/null
+rm /tmp/saysummsg.wav
+sync
+/usr/sbin/asterisk -rvx "rpt localplay $NODE /tmp/saysummsg" &>/dev/null

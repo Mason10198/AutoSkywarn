@@ -1,0 +1,116 @@
+AUTOSKYWARN OVERVIEW Version 6 - Updated 171121
+
+This is a functional description of AutoSkyWarn (ASW) based on the Version 6 implementation.  ASW allows an AllStar Server and Node to automatically report and announce about fifty National Weather Service (NWS) Warnings, Watches, Advisories and Statements (WWAS).  AutoSkyWarn was created and developed by Steve Mahler – KF5VH in late 2016 and 2017.  Steve says “Go Boilers”.
+
+The software design goals were:
+1. Develop software to run on the AllStar DIAL distribution.
+2. Obtain information about Warnings, Watches, Advisories and Specials (WWAS) from the National Weather Service (NWS).
+3. Process the data and generate an audio file that speaks which WWAS events are posted currently for the selected reporting area.
+4. Change the audio message (called the weather tail message) as the NWS changes the posted information.
+5. Clear the audio message when no WWAS events are posted.
+Features added in development (descriptions below):
+* Informative Message (Conditions Have Changed or All Clear)
+* SayTail Message (List of Weather Events)
+* BobTailing Function (Limit Length of Weather Tail Message)
+* Delete Multiple Messages (Duplicate Weather Events are Said Once)
+* Repeater Control Function (Call Shell Script Based on Weather Mode)
+* Audio Tags with individual messages (like “for Lafayette Parish”) at:
+o the beginning and/or end of the weather tail message
+o the beginning and/or end of the All Clear message
+* Allow Blocking an Event (a WWAS message from NWS)
+* Master ON/OFF control
+* Informative Message Empty ON/OFF control – All Clear Message
+* Informative Message Full ON/OFF control – Updated Weather Information
+* SayTail Message ON/OFF control
+* BobTail Message ON/OFF control
+* RptCtl Function ON/OFF control
+Additional information about program installation and implementation can be found in the README/ReadMe1st.pdf
+The Weather Tail Message (WX-TAIL) created by ASW can be linked to the AllStar Tail Message system via "tailmessagelist" in rpt.conf (if there are multiple files they are cycled). If the WX-TAIL message is played as a tail message then a local keyup will abort the reading of the message and it will be reschedule. When the list of events is played via SayTail (played once when conditions change) it will not abort on a keyup.
+
+AUDIO COMPONENTS
+There are three types of announcements controlled by ASW and one announcement controlled by AllStar. Using software controls, these announcements can be enabled or disabled.
+The first ASW controlled announcement is a fixed, but programmable statement that some item in the NWS forecast has been changed.  The author uses “tone … for Lafayette Parish, Updated Weather Information” for this message. The change could be the type of the event (like Tornado Warning) that will change the contents of the weather tail message. Or, the change is in the full text of the NWS alert message (like a change in the End Time of an Alert) that will not change the contents of the weather tail message. If this message is enabled, once it starts speaking it will not be interrupted.
+The second ASW controlled announcement is a forced speaking of the Weather Alerts called the Weather Tail Message.  The contents of the message is controlled by the NWS alerts, BobTailing and Blocking (described below). The author uses Audio Tagging and an optional alert tone so a message might sound like “for Lafayette Parish … tone … Thunder Storm Warning … tone … Flash Flood Watch”.  The content of the Weather Tail message is used for this announcement (if enabled) and repeater the tail message announcement (controlled by AllStar). If this message is enabled, once it starts speaking it will not be interrupted.
+The third ASW controlled announcement is an All Clear Message.  When NWS removes all weather alerts this message (fixed, but programmable) can be played.  The author uses the message “The National Weather Service has no alerts, watches or warnings for Lafayette Parish”.  If this message is enabled, once it starts speaking it will not be interrupted.
+The fourth type of AllStar Controlled message is the repeater tail message.  In rpt.conf the weather tail message (generated in the second message above) can be linked to the repeater tail message.  The tail message is played based on a timer (see AllStar documentation). Unlike the other messages, when the repeater tail message is played it can be interrupted by a local keyup.
+
+BOBTAILING THE WEATHER TAIL MESSAGE
+ASWs first large weather event generated user comments about the length of the WX-TAIL message. The ASW solution is BOBTAILING. The rules are:
+* If one [WARNING|WATCH|ADVISORY|STATEMENT] is voiced, then all
+       [WARNINGS|WATCHES|ADVISORIES|STATEMENTS] are voiced.
+* The weather events are presented in the following order: WARNINGS, WATCHES, ADVISORIES and STATEMENTS
+* ALL WARNINGS are always included. At the beginning of each following group, if the existing number of entries is greater than LIMTOT then stop copying groups and add an "and more events" message.
+REMOVING DUPLICATE EVENTS
+In a single county/parish you can have the same alert more than once. For example, Flood Warnings for two distinct areas in the same county. In ASW Version 4 the software says "Flood Warning" twice. AutoSkyWarn Version 6 takes any "multiples" and says the event ("Flood Warning") only once and deletes all other multiples ... and it adds the words "with Multiples".
+RUNNING MULTIPLE COPIES OF ASW
+As the project went outside the first repeater, almost the first question asked was could ASW support more than one alerting area (multiple counties / parishes). The software was not developed with that as a goal.  ASW can now can support multiple weather zones.  Details are in the README1st file. The limitation of how many zones appears to be how much time you are willing to listen to the repeater talk.
+AUDIO TAGGING
+Audio Tagging allows you to add audio (words or sounds) to 4 locations in the audio flow of ASW. You can tag at these locations …
+1) Leading and/or Following the All Clear Message
+2) Leading and/or Following the Weather Tail Message
+The Audio Tagging is control by the presence or absence of an audio file.  The software looks in /usr/local/AUTOSKY/SOUNDS for specific file names.  If the file exists the audio is automatically included in the announcement at the specified location.
+Audio Tagging was added for a different reason in Lafayette Louisiana, but it should function to allow multiple areas to be reported by one node (See Running Multiple Copies of ASW).
+The audio tag can carry any audio information or sound required. They are files, so remember that you can use shell scripts to Create, Replace and Delete the audio tagging.
+REPEATER CONTROL
+ASW allows you to call your own Shell Scripts (RptCtl[01]).  The “OFF” script is called when the NWS information changes to “All Clear”.   The “ON” script is called as the list of events changes.  So going from CLEAR to Tornado Watch calls the ON script.  Going from Tornado Watch to Tornado Warning and Tornado Watch calls the ON script again.  Going from Tornado Warning and Tornado Watch to Tornado Watch calls the ON script again. Going from Tornado Watch to CLEAR calls the OFF script.   You can control contents of the repeater id, make an announcement, or do anything else you can do in or from a shell script.
+The ON script includes the following numeric parameters: number of warnings, number of watches, number of advisories, number of special statements, if BobTailing truncated the weather tail message (0=No 1=Yes) and “RUNTOT” which is how many events were processed.  This allows you to take action based on the presence or absence of 4 classes of events and if BobTailing occurred.
+The OFF script is passed a single parameter, Empty by Blocking (0=No 1=Yes).  If NWS is putting out WWAS events, but Blocking Control (see below) is removing all messages that NWS is announcing, then the parameter is a “1”.  If NWS issues an All Clear then the parameter is a “0”.
+BLOCKING CONTROL
+Blocking allows for specific weather events not to be processed.  This might be desirable for a frequent, low priority (local decision) event.  Repeater control and Blocking control work together to fine tune ASW operation.  Please see the Blocking Document for additional information.
+
+
+LIST OF SUPPORTED WATCHES/WARNINGS/ADVISORIES/SPECIALS
+
+Blizzard Warning
+Coastal Flood Advisory
+Coastal Flood Warning
+Coastal Flood Watch
+Dense Fog Advisory
+Excessive Heat Warning
+Excessive Heat Watch
+Extreme Wind Warning
+Fire Weather Watch
+Flash Flood Warning
+Flash Flood Watch
+Flood Advisory
+Flood Warning
+Flood Watch
+Freeze Warning
+Freeze Watch
+Freezing Rain Advisory
+Frost Advisory
+Gale Warning
+Heat Advisory
+High Wind Warning
+High Wind Watch
+Hurricane Force Wind Warning
+Hurricane Local Statement
+Hurricane Warning
+Hurricane Watch
+Ice Storm Warning
+Red Flag Warning
+River Flood Warning
+River Flood Watch
+Severe Thunderstorm Warning
+Severe Thunderstorm Watch
+Small Craft Advisory
+Special Marine Warning
+Special Weather Statement
+Storm Surge Warning
+Storm Surge Watch
+Storm Warning
+Thunderstorm Warning
+Thunderstorm Watch
+Tornado Warning
+Tornado Watch
+Tropical Storm Warning
+Tropical Storm Watch
+Wind Advisory
+Wind Chill Advisory
+Wind Chill Warning
+Winter Storm Warning
+Winter Storm Watch
+Winter Weather Advisory
+AutoSkyWarn Version 6 Overview – Version 171004    Page 1
+
+

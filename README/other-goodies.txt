@@ -1,0 +1,47 @@
+OTHER GOODIES in the AUTOSKYWARN DISTRIBUTION 6K and NEWER – KF5VH - 180216
+
+Starting in version 6F there are eight (8) additional program sets in the distribution.  Starting in version 6K there are nine (9) additional programs.  These are not required to run AutoSkyWarn (ASW).  They are available for your perusal if you would like to see what function they can perform for you.
+Inside of the /usr/local/AUTOSKY directory there are new weather related scripts:
+A. Now – Used to speak current weather conditions
+B. SayTtl – Used to speak the title of each alert (includes start and stop times)
+C. SaySum – used to speak the summary of each alert (can be very long)
+D. HWO1 – used to speak the Today’s Hazardous Weather Outlook (plus spotter info)
+E. HWO2 – used to speak the Future Hazardous Weather Outlook (plus spotter info)
+F. Srs – Used to speak todays Sun Rise and Sun Set times
+There are three (3) additional directories in /usr/local. You could remove each directory and the contents without disturbing ASW operation.
+1. MID – software allows changing the voice ID of the repeater from console, crontab or DTMF
+2. TMB – Tail Message Builder – the W series of commands allow items to be added to the WX tail, the O series of commands adds items to the “Maintenance, Nets and Meetings” tail message.
+3. MTM – Multi Tail Manager – AutoSkyWarn was originally developed on a 2 tail messages system. I decided that I wanted all tail messages to play each time (and lengthen the tail message timers).  MTM takes the two independently created tail messages, watches their modify times and when something changes creates a new message (m-tail.wav). [This code can be extended to support N tails.]
+Below are some brief notes on each of the items.
+SCRIPT Now – Read the current weather conditions
+For testing from the shell prompt just   cd /usr/local/AUTOSKY and type  ./Now and you should hear the Lafayette Louisiana conditions [you do have to change NODE number is script]. Now does not use a configuration file.  All parameters are set in the script.  Change the node number. The OFILE has an airport identifier, the id for airport LFT is actually KLFT.
+In the section “Change Stuff” the first and third lines will need modification.  The data file from NWS has the location information for the Parish and the Airport … one “Lafayette” is enough.  The third line takes the State name out of the message.  The data file has other information that you may want.  In “Copy Desired Sections”, if you want to change the contents, find the tags you want and egrep the data out, then change the text in the Change Stuff section.  If you are not in the Central Time Zone, change the last line of Change Stuff to replace your zones abbreviation with words.  REQUIRES text2wave.
+SCRIPT SayTtl – Read the entire alert title
+SayTtl does not use a configuration file. Change the node number.  OFILE will be the same one that you use in AutoSkyWarn.  It grabs the same information as AutoSkyWarn and instead of just giving you the alert name, gives you the complete title which normally includes start and stop times.  If there are multiple alerts, all of the titles will be spoken (can get long).  If you are not in the Central Time Zone change the sed line that changes the time zone abbreviation to the words.  Also change the sed line that removes the county code.
+SCRIPT SaySum – Read the entire alert summary
+SaySum is almost identical to SayTtl (see above for suggestions). The big difference is that SaySum reads the SUMMARY section of each alert.  This is guaranteed to be long.  You should be familiar with COP 24 if you are going to use SaySum.  Make a DTMF code that executes COP 24.  It will look like:  90=cop,24  (in rpt.conf) and will save you a lot of time.  COP 24 aborts the current message being spoken.
+SCRIPT HWO1 – Hazardous Weather Outlook for Today
+A simple script that obtains the Hazardous Weather Outlook information (HWO).  When retrieved the information is scrubbed to retain only  1) HWO for Today and 2) the SkyWarn Spotter Information.  The file is then spoken.
+SCRIPT HWO2 – Hazardous Weather Outlook for the Future
+A simple script that obtains the Hazardous Weather Outlook information (HWO).  When retrieved the information is scrubbed to retain only  1) HWO for Future (about 5 days) and 2) the SkyWarn Spotter Information.  The file is then spoken.
+SCRIPT Srs – Todays Sun Rise and Sun Set Times
+1. obtain your location code from: https://weather.codes/search/ 
+2. change location="USLA0261"     #with code for your location
+3. change nlocation=”Lafayette”    #to your location name
+4. TALKIT=$WORK/TALKIT/Talkit    #will work if you have AutoSkyWarn installed
+And link to a DTMF command in rpt.conf by:  888=cmd,/usr/local/AUTOSKY/Srs
+You also need “lynx”.  If   # which lynx   doesn’t return a path name, you need to install lynx.  Just issue # apt-get install lynx    to have the software fully installed.
+SCRIPTs MID – MULTIPLE ID
+This software had major changes starting 12/2017.  I like to change the voice ID on the repeater.  It can be used to ID, or ID and announce some other information.  Scripts JB and PRI are the heart. Scripts idselect[12345] allow a DTMF command to select which repeater ID to use.  NOTE, the script uses file linking rather than file copies to change the ID.  Think of the design as a JukeBox with up to 8,999 IDs, 999 playlists, and a 7 level priority system.  The priority system allows “important IDs” (including some other information like “The KF5VH Repeater is in SkyWarn Mode”) to remain in place instead of getting replaced by a Holiday or fun ID.
+SCRIPT TMB – TAIL MESSAGE BUILDER
+AutoSkyWarn was built when the server already used 2 tail messages, Weather and Meetings. Weather entries before ASW were added by DTMF command (and it is all still in the SkyWarn repeater code as a backup).  The other tail message had Maintenance, Nets and Meetings information that was mostly controlled via DTMF commands called by CRONTAB.  See how it is used in ZFORWARD/CronTabCp.
+But each time a tail played you hear only 1 of the 2 tail messages and they would rotate.  I decided that I wanted all tail messages to play each time (and lengthen the timer between messages).  You should have all the messages prerecorded as WAVs and call them by “message number”.  If a tail has contents and you do a “build”, the new message is appended.  If a tail has contents and you do a “clear” then entire tail message is cleared.
+Notice the config file tmb.conf and how the file names are linked (ln). The other Script MTM takes two tail messages, watches their modify times and when something changes creates a new combined master tail message (m-tail.wav).  
+
+
+SCRIPT MTM – MULTI TAIL MANAGER
+Script MTM was going to originally designed to handle N messages, and can be expanded to do that.  For right now the code handles two tail messages and combines them into just one (1) master tail message (m-tail.wav).
+Notice the configuration file mtm.conf. MTM is started every 5 minutes from crontab.  It checks to see if another copy is running and if so dies.  This means that the tail messages for up to the first 5 minutes might lag after restarting the AllStar server.  After that, every six seconds MTM checks to see if the tail messages have changed. If not do nothing.  But if one did change, rebuild a new master tail message.  The crontab entry looks like:  */5 * * * *         /usr/local/MTM/MTM &        The ampersand is required for proper operation.
+Other Goodies - - - Version 180216 - - - Page 1 of 3
+
+

@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# RptCtl1 - REPEATER CONTROL SCRIPT
+#   FOR SKYWARN OPERATIONS
+#   "1" - FOR SKYWARN ON
+#
+# Write your own code to control your repeater when ASW
+# declares "NWS has posted Watches, Warnings or Advisories"
+#
+# Varible RPTCTLS points to default file to pass information
+# between Rptctl0 and Rptctl1 ... and any other program.
+#
+# set -x
+#
+
+# echo  This is Repeater Control 1 - SkyWarn Mode ON
+
+/usr/local/sbin/weather_data.php
+
+#KWARN=$1     # number of total warnings after blocking
+#KWATC=$2     # number of total watches after blocking
+#KADVS=$3     # number of total advisories after blocking
+#KSPCL=$4     # number of total special statements after blocking
+#KMORE=$5     # added "and more events"  NO=0  YES=1
+#KRTOT=$6     # number of events processed in making wx-tail
+
+# echo KWARN is $KWARN
+# echo KWATC is $KWATC
+# echo KADVS is $KADVS
+# echo KSPCL is $KSPCL
+# echo KMORE is $KMORE
+# echo KRTOT is $KRTOT
+
+# Call MID-JB-PRI to Switch to/next SkyWarn ID before next announce
+#/usr/local/MID/MID-JB/jb 2 2
+
+# TURN OFF  ASW *SAYTAIL*  UNDER CERTAIN CONDITIONS
+#if [ $KWARN -gt 1 ] || [ $KWATC -gt 2 ] ; then
+#     /usr/local/AUTOSKY/AutoSky.SayTail.OFF
+#fi
+
+# DISCONNECT FROM DEFAULT NETWORK IF CONNECTED  UNDER CERTAIN CONDITIONS
+#if [ $KWARN -gt 0 ] || [ $KWATC -gt 1 ] ; then
+     # set ISDNC with return value of command
+     # return value 0=found it / 1=not connected
+#     /usr/local/bin/default-net-connected
+#     ISDNC=$?
+#     if [ $ISDNC -eq 0 ] ; then
+#           /usr/local/bin/rpt 5100
+#     fi
+#fi

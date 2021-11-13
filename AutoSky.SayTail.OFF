@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Turn Off PUSH OF WX-TAIL TO AIR
+#
+#
+# SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
+source /home/repeater/WRKF394-utils/AUTOSKY/autoskywarn.conf
+#
+
+WX=${BASEDIR}
+
+ENABLEFILE=alert.enbl.saytail
+
+cd $WX ;
+
+# REMOVE THE ENABLE FILE
+$RM -f $ENABLEFILE
+
+# CONFIRM THE ACTION
+if [ "$1" != "quiet" ] ; then
+	$TALKIT  Auto-SkyWarn PUSH WEATHER TAIL MESSAGE Disabled
+fi

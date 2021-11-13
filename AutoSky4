@@ -1,0 +1,467 @@
+#!/bin/bash
+#
+# set -x
+#
+# echo This is AutoSky4 - Author Steve Mahler - KF5VH - GO BOILERS!!
+#
+# SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
+source autoskywarn.conf
+
+#
+WX=${BASEDIR}
+#
+BOBWARN='bob.warn' # Warnings   held here for BobTail Service
+BOBWATC='bob.watc' # Watches    held here for BobTail Service
+BOBADVS='bob.advs' # Advisories held here for BobTail Service
+BOBSPCL='bob.spcl' # Specials   held here for BobTail Service
+#
+BOKWARN='bok.warn' # Warnings   line count held here
+BOKWATC='bok.watc' # Watches    line count held here
+BOKADVS='bok.advs' # Advisories line count held here
+BOKSPCL='bok.spcl' # Specials   line count held here
+#
+BOVWARN=0 # Warnings   value of BOKWARN
+BOVWATC=0 # Watches    value of BOKWATC
+BOVADVS=0 # Advisories value of BOKADVS
+BOVSPCL=0 # Specials   value of BOKSPCL
+#
+RUNTOT=0   # RUNNING TOTAL OF MESSAGES IN WX TAIL
+MOREFLAG=0 # IF 1 THEN SAY "AND MORE" AT END OF WX TAIL
+#
+ANNN="xx"  # Announcement Number
+FOUNDONE=0 # Found (at least) one match
+#
+# USED TO BUILD SOUND FILE NAMES
+BUILD1="asn"
+BUILD3=".wav"
+#
+cd $WX
+#
+# FORCE  WS/WA  TO BE ARRAYS
+declare -a WS
+declare -a WA
+
+# WARNING STRINGS
+#
+WS[1]="Hurricane Force Wind Warning"
+WS[2]="Severe Thunderstorm Warning"
+WS[3]="Severe Thunderstorm Watch"
+WS[4]="Winter Weather Advisory"
+WS[5]="Tropical Storm Warning"
+WS[6]="Special Marine Warning"
+WS[7]="Freezing Rain Advisory"
+WS[8]="Special Weather Statement"
+WS[9]="Excessive Heat Warning"
+WS[10]="Coastal Flood Advisory"
+WS[11]="Coastal Flood Warning"
+WS[12]="Winter Storm Warning"
+WS[13]="Tropical Storm Watch"
+WS[14]="Thunderstorm Warning"
+WS[15]="Small Craft Advisory"
+WS[16]="Extreme Wind Warning"
+WS[17]="Excessive Heat Watch"
+WS[18]="Wind Chill Advisory"
+WS[19]="Storm Surge Warning"
+WS[20]="River Flood Warning"
+WS[21]="Flash Flood Warning"
+WS[22]="Coastal Flood Watch"
+WS[23]="Winter Storm Watch"
+WS[24]="Wind Chill Warning"
+WS[25]="Thunderstorm Watch"
+WS[26]="Fire Weather Watch"
+WS[27]="Dense Fog Advisory"
+WS[28]="Storm Surge Watch"
+WS[29]="River Flood Watch"
+WS[30]="Ice Storm Warning"
+WS[31]="Hurricane Warning"
+WS[32]="High Wind Warning"
+WS[33]="Flash Flood Watch"
+WS[34]="Red Flag Warning"
+WS[35]="Blizzard Warning"
+WS[36]="Tornado Warning"
+WS[37]="Hurricane Watch"
+WS[38]="High Wind Watch"
+WS[39]="Frost Advisory"
+WS[40]="Freeze Warning"
+WS[41]="Wind Advisory"
+WS[42]="Tornado Watch"
+WS[43]="Storm Warning"
+WS[44]="Heat Advisory"
+WS[45]="Flood Warning"
+WS[46]="Gale Warning"
+WS[47]="Freeze Watch"
+WS[48]="Flood Watch"
+WS[49]="Flood Advisory"
+WS[50]="AUTOSKY MORE"
+WS[51]="AUTOSKY MULTIPLE"
+WS[52]="Hurricane Local Statement"
+WS[53]="Beach Hazards Statement"
+WS[54]="Air Quality Alert"
+
+# ANNOUNCEMENT STRINGS
+#
+WA[1]="1"
+WA[2]="2"
+WA[3]="3"
+WA[4]="4"
+WA[5]="5"
+WA[6]="6"
+WA[7]="7"
+WA[8]="8"
+WA[9]="9"
+WA[10]="10"
+WA[11]="11"
+WA[12]="12"
+WA[13]="13"
+WA[14]="14"
+WA[15]="15"
+WA[16]="16"
+WA[17]="17"
+WA[18]="18"
+WA[19]="19"
+WA[20]="20"
+WA[21]="21"
+WA[22]="22"
+WA[23]="23"
+WA[24]="24"
+WA[25]="25"
+WA[26]="26"
+WA[27]="27"
+WA[28]="28"
+WA[29]="29"
+WA[30]="30"
+WA[31]="31"
+WA[32]="32"
+WA[33]="33"
+WA[34]="34"
+WA[35]="35"
+WA[36]="36"
+WA[37]="37"
+WA[38]="38"
+WA[39]="39"
+WA[40]="40"
+WA[41]="41"
+WA[42]="42"
+WA[43]="43"
+WA[44]="44"
+WA[45]="45"
+WA[46]="46"
+WA[47]="47"
+WA[48]="48"
+WA[49]="51"
+WA[50]="92"
+WA[51]="90"
+WA[52]="52"
+WA[53]="53"
+WA[54]="54"
+
+# echo THIS IS AutoSky4
+
+# j="3"
+# echo WS[\$j] is ${WS[$j]}
+# echo WA[\$j] is ${WA[$j]}
+
+# COMMIT TO CHANGE
+# ROTATE SAVE FILES
+# ADD DATE WHEN THE DATA GOES TO DOT 1
+# COPY CURRENT MESSAGE TO SAVE MESSAGE FILE
+#    THIS BECOMES THE "Existing" Weather Conditions
+$CP -f ${FILESAVE}.2 ${FILESAVE}.3 >/dev/null 2>&1
+$CP -f ${FILESAVE}.1 ${FILESAVE}.2 >/dev/null 2>&1
+$CP -f ${FILESAVE} ${FILESAVE}.1 >/dev/null 2>&1
+echo "$(date)" >>${FILESAVE}.1
+$CP -f $NFILE2D $FILESAVE >/dev/null 2>&1
+/bin/sync
+
+# CLEAR THE BOBTAIL WORKING FILES
+$RM -f $BOBWARN $BOBWATC $BOBADVS $BOBSPCL $BOKWARN $BOKWATC $BOKADVS $BOKSPCL >/dev/null 2>&1
+
+# ONLY PROCESS LINES WITH SPECIFIC KEY WORDS
+#   ALL WARNINGS BEFORE WATCHES BEFORE ...
+#   AND SORT FOR MULTIPLE TESTING
+
+$GREP -i "Warning" <$NFILE4 | $SORT >$BOBWARN
+$GREP -i "Watch" <$NFILE4 | $SORT >$BOBWATC
+$GREP -i "Advisory" <$NFILE4 | $SORT >$BOBADVS
+$GREP -i "Statement" <$NFILE4 | $SORT >$BOBSPCL
+# ADDED NEW CLASS of EVENT in 6M - "ALERT"
+# COMBINE AT "STATEMENT LEVEL"
+$GREP -i "Alert" <$NFILE4 | $SORT >>$BOBSPCL
+
+# NOW ASSEMBLE THE COUNT OF ITEMS PER EVENT TYPE
+$WC -l <$BOBWARN >$BOKWARN
+$WC -l <$BOBWATC >$BOKWATC
+$WC -l <$BOBADVS >$BOKADVS
+$WC -l <$BOBSPCL >$BOKSPCL
+
+# NOW LOAD THE VALUE INTO THE RESPECTIVE VARIABLE
+BOVWARN=$(/bin/cat $BOKWARN)
+BOVWATC=$(/bin/cat $BOKWATC)
+BOVADVS=$(/bin/cat $BOKADVS)
+BOVSPCL=$(/bin/cat $BOKSPCL)
+
+# echo BOVWARN is $BOVWARN
+# echo BOVWATC is $BOVWATC
+# echo BOVADVS is $BOVADVS
+# echo BOVSPCL is $BOVSPCL
+
+#
+################## BOBTAIL CONTROL BEGINS #############
+#
+RUNTOT=0 # Counts the lines of output
+#
+# IF ENABLED TRIM THE EVENT LIST TO LIMTOT EVENTS (within design)
+if [ -e $ENABLEBOBTAIL ]; then
+      #
+      #     # ADD EVENT SECTIONS UNTIL RUNTOT > LIMTOT
+      #
+      #     # NOTE! - You can exceed LIMTOT if the SECTION has
+      #     #       - more than one line ... never truncate a SECTION
+      #     # WARNINGS ... PLAY ALL REGARDLESS OF COUNT
+      $CAT $BOBWARN >$NFILE5
+      RUNTOT=$((${RUNTOT} + ${BOVWARN}))
+      #
+      #     # echo BOVWARN is $BOVWARN
+      #     # echo RUNTOT is $RUNTOT "   " BOVWARN is $BOVWARN "   " MOREFLAG is $MOREFLAG
+      #
+      #     # IF RUNTOT LT LIMTOT THEN ADD ANOTHER SECTION
+      if [ $RUNTOT -lt $LIMTOT ]; then
+            $CAT $BOBWATC >>$NFILE5
+            RUNTOT=$((${RUNTOT} + ${BOVWATC}))
+      else
+            #     #  echo AT WATCH WE ARE OVER LIMTOT ;
+            MOREFLAG=1
+      fi
+      #
+      #     # echo BOVWATC is $BOVWATC
+      #     # echo RUNTOT is $RUNTOT and LIMTOT is $LIMTOT "   " MOREFLAG is $MOREFLAG ;
+      #
+      #     # IF RUNTOT LT LIMTOT THEN ADD ANOTHER SECTION
+      if [ $RUNTOT -lt $LIMTOT ]; then
+            $CAT $BOBADVS >>$NFILE5
+            RUNTOT=$((${RUNTOT} + ${BOVADVS}))
+      else
+            #     #  echo AT ADVISORY WE ARE OVER LIMTOT ;
+            MOREFLAG=1
+      fi
+      #
+      #     # echo BOVADVS is $BOVADVS
+      #     # echo RUNTOT is $RUNTOT and LIMTOT is $LIMTOT "   " MOREFLAG is $MOREFLAG ;
+      #
+      #     # IF RUNTOT LT LIMTOT THEN ADD ANOTHER SECTION
+      if [ $RUNTOT -lt $LIMTOT ]; then
+            $CAT $BOBSPCL >>$NFILE5
+            RUNTOT=$((${RUNTOT} + ${BOVSPCL}))
+      else
+            #     #  echo AT SPECIAL WE ARE OVER LIMTOT ;
+            MOREFLAG=1
+      fi
+      #
+      #     # echo BOVSPCL is $BOVSPCL
+      #     # echo RUNTOT is $RUNTOT and LIMTOT is $LIMTOT "   " MOREFLAG is $MOREFLAG ;
+      #
+      #     # IF WE TRUNCATED THE LENGTH SAY "AND MORE"
+      if [ $MOREFLAG -eq 1 ]; then
+            if [ $RUNTOT -ge $LIMTOT ]; then
+                  /bin/echo "AUTOSKY MORE" >>$NFILE5
+            fi
+      fi
+#
+else
+      #
+      #     # BOBTAIL OFF ... put it all back together in NEW ORDER!
+      $CAT $BOBWARN $BOBWATC $BOBADVS $BOBSPCL >$NFILE5
+
+fi
+#
+################## BOBTAIL CONTROL ENDS #############
+#
+/bin/sync
+#
+################## BEGIN BUILDING WX-TAIL ###########
+#
+# CLEAR THE EXISTING TAILMSG
+# IFF COUNTYLT EXISTS (THINK COUNTY *L*EADS *T*AILMSG)
+# THEN PATCH IN "for countyname county" OR ANY OTHER SOUND
+# FOLLOWED BY A WORD-SPACE
+# ELSE PATCH IN A WORD-SPACE to the WX TAIL MESSAGE
+if [ -e ${WXA}/${COUNTYLT} ]; then
+      $CP -f $WXA/$COUNTYLT $WXT/$TAILMSG >/dev/null 2>&1
+      $RM -f $WXT/$TFILEW >/dev/null 2>&1 #Make available for output
+      $CATWAV $WXT/$TAILMSG $WXA/$VWORDSP $WXT/$TFILEW
+      $CP -f $WXT/$TFILEW $WXT/$TAILMSG >/dev/null 2>&1
+else
+      $CP -f $WXA/$VWORDSP $WXT/$TAILMSG >/dev/null 2>&1
+fi
+
+# MARK AS NOTHING FOUND IN FILE NFILE5
+FOUNDONE=0
+# THIS HOLDS THE LAST LINE EVENT TYPE
+PREV=1000
+# THIS HOLDS THE CURRENT LINE EVENT TYPE
+CURR=1001
+# THIS FLAG SAYS WE ARE SEEING A MULTIPLE EVENT
+MATCH=0
+# THIS VARIABLE POINTS TO THE MUTIPLE EVENT ANNOUNCEMENT
+MULTIANN=90
+# THIS VARIABLE SAYS THE LIST OF ALERTS CONTAINS A TORNADO WARNING
+TORNADO=0
+
+while IFS= read -r line; do
+
+      #     Look for string in current line
+      #     If match, build WX-TAIL and then move to next line in NFILE5
+
+      for ((i = 1; i < 55; i++)); do
+            #          echo "loop i equals " $i
+            if [[ $line =~ ${WS[${i}]} ]]; then
+                  if [[ $line =~ ${WS[36]} ]]; then # If line contains Tornado Warning
+                        TORNADO=1
+                  fi
+                  ANNN=${WA[$i]}
+                  #               echo ANNN PARAMETER VALUE IS $ANNN
+
+                  #               MULTIPLE EVENT CHECKING
+                  CURR=$ANNN
+
+                  #               echo "Prev equal to Curr Event P = " $PREV " C = " $CURR
+
+                  if [[ $CURR -eq $PREV ]]; then
+                        MATCH=$(($MATCH + 1))
+                  else
+                        MATCH=0
+                  fi
+
+                  if [[ $MATCH -eq 0 ]]; then
+
+                        #                    # BUILD TAILMSG - NOW ADD A "AUDIO TIC" TO THE TAILMSG
+                        $RM -f $WXT/$TFILEW >/dev/null 2>&1 #Make available for output
+                        $CATWAV $WXT/$TAILMSG $WXA/${BUILD1}${AUDIOTIC}${BUILD3} $WXT/$TFILEW
+                        $CP -f $WXT/$TFILEW $WXT/$TAILMSG >/dev/null 2>&1
+
+                        #                    # BUILD TAILMSG - NOW ADDING THE NEW ALERT TO THE TAILMSG
+                        $RM -f $WXT/$TFILEW >/dev/null 2>&1 #Make available for output
+                        $CATWAV $WXT/$TAILMSG $WXA/${BUILD1}${ANNN}${BUILD3} $WXT/$TFILEW
+                        $CP -f $WXT/$TFILEW $WXT/$TAILMSG >/dev/null 2>&1
+
+                        #                    # BUILD TAILMSG - NOW ADD A "WORDSPACE" TO THE TAILMSG
+                        $RM -f $WXT/$TFILEW >/dev/null 2>&1 #Make available for output
+                        $CATWAV $WXT/$TAILMSG $WXA/$VWORDSP $WXT/$TFILEW
+                        $CP -f $WXT/$TFILEW $WXT/$TAILMSG >/dev/null 2>&1
+                  fi
+
+                  if [[ $MATCH -eq 1 ]]; then # Skip this, we don't care to know if there are multiples or not
+                        # #                    # BUILD TAILMSG - ADD MULTIPLE MESSAGE
+                        # $RM -f $WXT/$TFILEW > /dev/null 2>&1 #Make available for output
+                        # $CATWAV $WXT/$TAILMSG $WXA/${BUILD1}${MULTIANN}${BUILD3} $WXT/$TFILEW
+                        # $CP -f $WXT/$TFILEW $WXT/$TAILMSG > /dev/null 2>&1
+
+                        # #                    # BUILD TAILMSG - NOW ADD A "WORDSPACE" TO THE TAILMSG
+                        # $RM -f $WXT/$TFILEW > /dev/null 2>&1 #Make available for output
+                        # $CATWAV $WXT/$TAILMSG $WXA/$VWORDSP $WXT/$TFILEW
+                        # $CP -f $WXT/$TFILEW $WXT/$TAILMSG > /dev/null 2>&1
+                        echo dummy >/dev/null
+                  fi
+
+                  if [[ $MATCH -ge 2 ]]; then
+                        #                    # NOW THIRD OR GREATER COPY - DO NOTHING
+                        #		     # echo 3RD or > MATCH
+                        echo dummy >/dev/null
+                  fi
+
+                  FOUNDONE=1
+                  /bin/sync
+                  break
+            else
+                  #              # CURRENT TEST DOES NOT MATCH - SHOULD IT BE ADDED TO LIST?
+                  #	       echo AUTOSKY4 WS STRING NO MATCH
+                  /bin/sync
+            fi
+      done
+
+      #     # DONE PROCESSING CURRENT, MAKE IT PREVIOUS
+      PREV=$CURR
+
+done <"$NFILE5"
+
+# IFF COUNTYFT EXISTS (THINK COUNTY *F*OLLOWS *T*AILMSG)
+# PATCH IN "for countyname county"  OR ANY OTHER SOUND
+if [ -e ${WXA}/${COUNTYFT} ]; then
+      $RM -f $WXT/$TFILEW >/dev/null 2>&1 #Make available for output
+      $CATWAV $WXT/$TAILMSG $WXA/$COUNTYFT $WXT/$TFILEW
+      $CP -f $WXT/$TFILEW $WXT/$TAILMSG >/dev/null 2>&1
+fi
+
+# Temporarily move the real tailmessage to /tmp/ and
+# replace it with an empty one to keep Asterisk from
+# playing a duplicate alert - N5LSN
+$MV $WXT/$TAILMSG /tmp/$TAILMSG >/dev/null 2>&1
+$CP -f $WXA/$VWORDSP $WXT/$TAILMSG >/dev/null 2>&1
+
+/bin/sync
+
+#
+################## END BUILDING WX-TAIL #############
+#
+if [[ $FOUNDONE -eq 0 ]]; then
+
+      # INTERFACE WITH  MID-JB-PRI  TO SET SKYWARN REPEATER ID
+      MIDD=/usr/local/MID
+      MIDJBD=$MIDD/MID-JB
+      if [ -e $MIDD ]; then
+            $MIDJBD/jb 2 2 #set a SkyWarn ID
+            /bin/sleep 1s
+            /bin/sync
+      fi
+
+      # IN THE WHOLE FILE DIDN'T FIND A MATCH
+      # SO PLAY ERROR TONE
+      echo $(date "+%x-%X") "Playing error tone!"
+      /usr/sbin/asterisk -rvx "rpt localplay $NODE $WXA/$A3FILE" >/dev/null 2>&1
+else
+      if cmp -s "$NFILE5" "$OLDNFILE"; then # If alert is the same as the last alert
+            echo $(date "+%x-%X") "I think this is the same announcement I said earlier, so I'm going to skip it."
+      else
+            # IF ENABLED
+            # NOW SAY SOMETHING ABOUT THE NEW LEVEL OF WARNINGS
+            # THIS WILL BE A LOCAL PLAY OF A2FILE
+            # N.B., THIS MESSAGE IS NOT INTERRUPTABLE ONCE STARTED AT RX DROP
+            if [ $TMBMTM -eq 1 ]; then
+                  sleep $TMBMTMSECS # used for KF5VH TMB/MTM Software - see a*conf
+            fi
+            if [ -e $ENABLEINFORMF ]; then
+                  if (($TORNADO == 1)); then # If a tornado Warning was found
+                        echo $(date "+%x-%X") 'Playing TORNADO WARNING message...'
+                        /usr/sbin/asterisk -rvx "rpt localplay $NODE $WXA/$A4FILE" >/dev/null 2>&1
+                  else # If Tornado Warning NOT found
+                        echo $(date "+%x-%X") 'Playing updated info message...'
+                        /usr/sbin/asterisk -rvx "rpt localplay $NODE $WXA/$A2FILE" >/dev/null 2>&1
+                  fi
+            fi
+
+            # IF ENABLED
+            # NOW PLAY THE NEW WX STATUS
+            # N.B., THIS MESSAGE IS NOT INTERRUPTABLE ONCE STARTED AT RX DROP
+            if [ -e $ENABLESAYTAIL ]; then
+                  # /usr/sbin/asterisk -rvx "rpt localplay $NODE $WXT/$TAILMSGBASE" # ORIGINAL LINE
+                  echo $(date "+%x-%X") 'Playing tail-message...'
+                  /usr/sbin/asterisk -rvx "rpt localplay $NODE /tmp/$TAILMSGBASE" >/dev/null 2>&1 # Play the tailmessage we temporarily moved
+            fi
+            $CP -f $NFILE5 $OLDNFILE >/dev/null 2>&1
+            # Wait to be sure Asterisk has played our alert, then
+            # move the tailmessage back where it goes - N5LSN
+            echo $(date "+%x-%X") 'Waiting 30 seconds for Asterisk to finish up...'
+            sleep 30
+            $MV /tmp/$TAILMSG $WXT/$TAILMSG >/dev/null 2>&1
+      fi
+fi
+
+/bin/sync
+
+# IF ENABLED, CALL REPEATER CONTROL SCRIPT
+# FOR SKYWARN OPERATIONS
+if [ -e $ENABLERPTCTL ]; then
+      $RPTCTL1 $BOVWARN $BOVWATC $BOVADVS $BOVSPCL $MOREFLAG $RUNTOT
+fi
+
+exit 0

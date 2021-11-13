@@ -1,0 +1,118 @@
+#!/bin/bash
+#
+# set -x
+# echo $(date "+%x-%X") This is AutoSky1 - Author Steve Mahler - KF5VH - GO BOILERS!!
+#
+# syntax: AutoSky1 {testnumber}
+#
+# SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
+source autoskywarn.conf
+
+#
+WX=${BASEDIR}
+
+#
+Xresult=99
+
+#
+cd $WX
+#
+
+# IS AUTOSKY ENABLED?
+if [ ! -e $ENABLEFILE ]; then
+   echo $(date "+%x-%X") "AutoSkywarn not enabled!"
+   exit -90
+fi
+
+# PULL THE INFORMATION FROM NWS
+/usr/bin/wget --no-check-certificate alerts.weather.gov/cap/$OFILE 2>/dev/null
+
+# COPY THE WEIRD NAMED FILE TO SOMETHING NORMAL
+$CP -f $OFILE $NFILE1 > /dev/null 2>&1
+
+# REMOVE the WEIRDLY NAMED FILE
+$RM -f $OFILE > /dev/null 2>&1
+
+# FOR TESTING CHANGE VALUE OF TCONTROL TO THE TEST NUMBER TO RUN
+#   SET TCONTROL TO "0" (zero) FOR PRODUCTION MODE
+# PARAMETER IS SET ON THE CALL OF AutoSky1, i.e. ./AutoSky1 [1-9]
+
+if [ -z $1 ]; then
+   TCONTROL=0
+else
+   TCONTROL=$1
+fi
+
+case $TCONTROL in
+
+0)
+   echo $(date "+%x-%X") 1 >/dev/null
+   ;;
+1)
+   # Tornado Watch / Tornado Warning
+   echo $(date "+%x-%X") "Running Test #1: Tornado Watch / Tornado Warning..."
+   $CP -f test.file1 $NFILE1 > /dev/null 2>&1
+   ;;
+2)
+   # Tornado Watch / Winter WX Adv / Tornado Watch / Red Flag Warning
+   echo $(date "+%x-%X") "Running Test #2: Tornado Watch / Winter WX Adv / Tornado Watch / Red Flag Warning..."
+   $CP -f test.file2 $NFILE1 > /dev/null 2>&1
+   ;;
+3)
+   # Tornado Warning / Frost Adv / Tornado Warning
+   echo $(date "+%x-%X") "Running Test #3: Tornado Warning / Frost Adv / Tornado Warning..."
+   $CP -f test.file3 $NFILE1 > /dev/null 2>&1
+   ;;
+4)
+   # Frost Adv / Tornado Warning / Frost Adv / Spcl Wx / Tornado Watch / Frost Adv
+   echo $(date "+%x-%X") "Running Test #4: Frost Adv / Tornado Warning / Frost Adv / Spcl Wx / Tornado Watch / Frost Adv..."
+   $CP -f test.file4 $NFILE1 > /dev/null 2>&1
+   ;;
+5)
+   # Small Craft Adv / Frost Adv / Tornado Warning / Special WX * 5 / Hurricane Warning
+   echo $(date "+%x-%X") "Running Test #5: Small Craft Adv / Frost Adv / Tornado Warning / Special WX * 5 / Hurricane Warning..."
+   $CP -f test.file5 $NFILE1 > /dev/null 2>&1
+   ;;
+6)
+   # Flood Warning * 2
+   echo $(date "+%x-%X") "Running Test #6: Flood Warning * 2..."
+   $CP -f test.file6 $NFILE1 > /dev/null 2>&1
+   ;;
+7)
+   # Excessive Heat Warning / Tropical Storm Watch / Wind Chill Adv * 2
+   echo $(date "+%x-%X") "Running Test #7: Excessive Heat Warning / Tropical Storm Watch / Wind Chill Adv * 2..."
+   $CP -f test.file7 $NFILE1 > /dev/null 2>&1
+   ;;
+8)
+   # [Say every warning, long!, no order, can interfer with tail message playing!]
+   echo $(date "+%x-%X") "Running Test #8: Say every warning, long, no order..."
+   $CP -f test.file8 $NFILE1 > /dev/null 2>&1
+   ;;
+9)
+   # Single Special Weather
+   echo $(date "+%x-%X") "Running Test #9: Single Special Weather..."
+   $CP -f test.file9 $NFILE1 > /dev/null 2>&1
+   ;;
+*)
+   # error - ring the error bell
+   echo $(date "+%x-%X") "TEST MODE ERROR!"
+   /usr/sbin/asterisk -rvx "rpt localplay $NODE $WXA/$A3FILE"
+   exit -89
+   ;;
+esac
+
+# COPY ONLY ONE TYPE OF SECTION (can be multiple sections)
+#   FROM THE NWS FILE TO THE NEW FILE
+$EGREP "title" <$NFILE1 >$NFILE2
+#
+# DOES NEW NWS FILE = OLD SAVE FILE
+#     NFILE2 suffled to NFILE2D in A*2. OK SAVE NFILE2D to FILESAVE in A*[34]
+if cmp -s "$NFILE2" "$FILESAVE"; then
+   echo $(date "+%x-%X") "Data is the same, nothing to do..."
+   ./AutoSky2
+else
+   echo $(date "+%x-%X") "New data found..."
+   ./AutoSky2
+fi
+
+exit -94

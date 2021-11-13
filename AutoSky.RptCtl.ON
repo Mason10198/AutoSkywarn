@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# Turn On Auto SkyWarn AUXILLARY REPEATER CONTROL
+#
+# SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
+source /home/repeater/WRKF394-utils/AUTOSKY/autoskywarn.conf
+#
+
+WX=${BASEDIR}
+
+cd $WX ;
+
+# CREATE ENABLE FILE
+$TOUCH $ENABLERPTCTL
+
+# CONFIRM THE ACTION
+if [ "$1" != "quiet" ] ; then
+	$TALKIT  Auto-SkyWarn Auxillary Repeater Control Enabled
+fi

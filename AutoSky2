@@ -1,0 +1,125 @@
+#!/bin/bash
+#
+# set -x
+# echo $(date "+%x-%X") This is AutoSky2 - Author Steve Mahler - KF5VH - GO BOILERS!!
+#
+# SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
+source autoskywarn.conf
+
+#
+WX=${BASEDIR}
+#
+
+Xresult=98
+Yresult=99
+
+# BLOCKING SYSTEM - KILL AN EVENT IN THE LIST
+declare -a WD
+
+# TABLE OF EVENTS TO DROP
+# MUST MATCH CONTENTS of WS ARRAY EXACTLY (in AutoSky4)
+# *** DO NOT REMOVE THE FOLLOWING LINE ***
+WD[0]="DO NOT DELETE - THINGS LISTED HERE ARE BLOCKED"
+# THE BELOW ARE BLOCKED FROM ASW PROCESSING WHEN THE WD[] CONTENTS
+#  MATCH WS[] CONTENTS EXACTLY AND UNCOMMENT THE LINE
+#   - increment the array index +1 each time
+#   - the list can be as long as necessary
+# WD[1]="Beach Hazards Statement"
+# WD[2]="Something Else"
+# WD[3]="Something Different"
+
+# SET TO TOTAL NUMBER OF ELEMENTS IN ARRAY ("0" too!)
+WDN=${#WD[@]}
+# echo $(date "+%x-%X") WDN is $WDN
+
+#
+cd $WX
+#
+
+#
+# SHUFFLE DATA TO NEW FILE SO WE CAN PUT IT BACK
+# AFTER PROCESSING, SAVING THE REST OF THE CODE.
+$RM -f $NFILE2D > /dev/null 2>&1
+$CP -f $NFILE2 $NFILE2D > /dev/null 2>&1
+$RM -f $NFILE2 > /dev/null 2>&1
+
+# IF THE WD TABLE IS EMPTY [WD[0] IS CONSTANT]
+#  SKIP and ADJUST
+if [ ${WDN} -ne 1 ]; then
+     # TAKE EACH LINE ONE AT A TIME
+     # IF IN THE WD ARRAY DON'T COPY TO OUTPUT
+
+     while IFS= read -r line; do
+          # DP flag change to "1" if match
+          DP=0
+          # Check line against WD contents
+          for ((i = 1; i < ${WDN}; i++)); do
+               # echo $(date "+%x-%X") "loop i equals " $i
+               if [[ $line =~ ${WD[${i}]} ]]; then
+                    DP=1
+                    # echo $(date "+%x-%X") DP PARAMETER VALUE IS $DP
+               fi
+          done
+
+          if [ ${DP} -eq 0 ]; then
+               /bin/echo $line >>$NFILE2
+          fi
+
+     done <"$NFILE2D"
+
+else
+
+     # STILL HAVE TO GET THE DATA BACK IN NFILE2
+     $CP -f $NFILE2D $NFILE2 > /dev/null 2>&1
+
+fi
+
+/bin/sync
+
+# MAKE SURE THE NEXT STEP FILES ARE CLEAR then
+# STRIP THE FIRST LINE WHICH LEAVES A, W and W
+$RM -f $NFILE3 $NFILE4 > /dev/null 2>&1
+$SED "1d" $NFILE2 >$NFILE3
+$CP -f $NFILE3 $NFILE4 > /dev/null 2>&1
+
+# NOW GET RID OF THE MARKERS
+set -o noglob
+$SED -i 's%</title>%%' $NFILE4
+$SED -i 's/<title>//' $NFILE4
+set +o noglob
+
+# FILE NFILE4 HAS THE TEXT TO PROCESS
+
+# IF RESULT HAS NO LINES THEN BLOCKING TOOK ALL EVENTS
+#   OR WE HAVE ONE OR MORE EVENTS TO PROCESS
+$WC -l <$NFILE4 >$WFILEWC
+Xresult=$(cat $WFILEWC)
+# echo $(date "+%x-%X") Xresult is $Xresult " ... " WFILEWC is $WFILEWC
+
+case $Xresult in
+0)
+     #           echo $(date "+%x-%X")  AutoSky2 NO LINES IN NFILE4 - BLOCKED CLEAR
+     #           echo $(date "+%x-%X")  SO CALL AutoSky3
+     # FIRST PARAM = 1 PSEUDO CLEAR VIA BLOCKING
+     ./AutoSky3 1
+     exit $?
+     ;;
+*)
+     #    	    AutoSky2 MIGHT BE A CLEAR MESSAGE OR SINGLE or MULTIPLE ALERT
+     #           AutoSky2 CHECK FOR ALL CLEAR MESSAGE if NOT SET ANNOUNCEMENTS
+     $GREP -i "There are no active watches, warnings or advisories" $NFILE4 >/dev/null
+     Yresult=$?
+     if [ $Yresult -eq 0 ]; then
+          #               echo $(date "+%x-%X") AutoSky2 MATCHED - NO W, W or As so CALL AutoSky3
+          # FIRST PARAM = 0 TRUE ALL CLEAR
+          ./AutoSky3 0
+          exit $?
+     else
+          #               echo $(date "+%x-%X") AutoSky2 NO MATCH - WE HAVE A CHANGE IN THE WEATHER so CALL AutoSky4
+          ./AutoSky4
+          exit $?
+     fi
+     ;;
+esac
+
+exit -94

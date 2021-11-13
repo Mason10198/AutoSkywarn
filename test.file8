@@ -1,0 +1,91 @@
+<?xml version = '1.0' encoding = 'UTF-8' standalone = 'yes'?>
+
+<!--
+This atom/xml feed is an index to active advisories, watches and warnings 
+issued by the National Weather Service.  This index file is not the complete 
+Common Alerting Protocol (CAP) alert message.  To obtain the complete CAP 
+alert, please follow the links for each entry in this index.  Also note the 
+CAP message uses a style sheet to convey the information in a human readable 
+format.  Please view the source of the CAP message to see the complete data 
+set.  Not all information in the CAP message is contained in this index of 
+active alerts.
+-->
+
+<feed
+xmlns = 'http://www.w3.org/2005/Atom'
+xmlns:cap = 'urn:oasis:names:tc:emergency:cap:1.1'
+xmlns:ha = 'http://www.alerting.net/namespace/index_1.0'
+>
+
+<!-- TZN = <> -->
+<!-- TZO = <> -->
+<!-- http-date = Wed, 03 Mar 2017 17:52:43 GMT -->
+<id>https://alerts.weather.gov/cap/wwaatmget.php?x=LAC055&amp;y=0</id>
+<generator>NWS CAP Server</generator>
+<updated>2017-03-15T17:52:43+00:00</updated>
+<author>
+<name>w-nws.webmaster@noaa.gov</name>
+</author>
+<title>Current Watches, Warnings and Advisories for Lafayette (LAC055) Louisiana Issued by the National Weather Service</title>
+<title> Blizzard Warning </title>
+<title> Flood Watch </title>
+<title> Ice Storm Warning </title>
+<title> Thunderstorm Watch </title>
+<title> Coastal Flood Advisory </title>
+<title> Freeze Warning </title>
+<title> Red Flag Warning </title>
+<title> Tornado Warning </title>
+<title> Coastal Flood Warning </title>
+<title> Freeze Watch </title>
+<title> River Flood Warning </title>
+<title> Tornado Watch </title>
+<title> Coastal Flood Watch </title>
+<title> Freezing Rain Advisory </title>
+<title> River Flood Watch </title>
+<title> Tropical Storm Warning </title>
+<title> Dense Fog Advisory </title>
+<title> Frost Advisory </title>
+<title> Severe Thunderstorm Warning </title>
+<title> Tropical Storm Watch </title>
+<title> Excessive Heat Warning </title>
+<title> Gale Warning </title>
+<title> Severe Thunderstorm Watch </title>
+<title> Wind Advisory </title>
+<title> Excessive Heat Watch </title>
+<title> Heat Advisory </title>
+<title> Small Craft Advisory </title>
+<title> Wind Chill Advisory </title>
+<title> Extreme Wind Warning </title>
+<title> High Wind Warning </title>
+<title> Special Marine Warning </title>
+<title> Wind Chill Warning </title>
+<title> Fire Weather Watch </title>
+<title> High Wind Watch </title>
+<title> Storm Surge Warning </title>
+<title> Winter Storm Warning </title>
+<title> Flash Flood Warning </title>
+<title> Hurricane Force Wind Warning </title>
+<title> Storm Surge Watch </title>
+<title> Winter Storm Watch </title>
+<title> Flash Flood Watch </title>
+<title> Hurricane Warning </title>
+<title> Storm Warning </title>
+<title> Winter Weather Advisory </title>
+<title> Flood Warning </title>
+<title> Hurricane Watch </title>
+<title> Thunderstorm Warning </title>
+<title> Special Weather Statement </title>
+<title> Flood Advisory </title>
+
+<link href='https://alerts.weather.gov/cap/wwaatmget.php?x=LAC055&amp;y=0'/>
+
+  	<entry>
+  	<id>https://alerts.weather.gov/cap/wwaatmget.php?x=LAC055&amp;y=0</id>
+  	<updated>2017-03-15T17:52:43+00:00</updated>
+  	<author>
+  	<name>w-nws.webmaster@noaa.gov</name>
+  	</author>
+  	<link href='https://alerts.weather.gov/cap/wwaatmget.php?x=LAC055&amp;y=0'/>
+  	</entry>
+  	</feed>
+  	

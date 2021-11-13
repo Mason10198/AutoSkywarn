@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Turn On BOBTAILING OF WX-TAIL MESSAGE
+#
+#
+# SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
+source /home/repeater/WRKF394-utils/AUTOSKY/autoskywarn.conf
+#
+
+WX=${BASEDIR}
+
+ENABLEFILE=alert.enbl.bobtail
+
+cd $WX ;
+
+# CREATE ENABLE FILE
+$TOUCH $ENABLEFILE
+
+# CONFIRM THE ACTION
+if [ "$1" != "quiet" ] ; then
+	$TALKIT  Auto-SkyWarn Bob-Tail-ing Enabled
+fi

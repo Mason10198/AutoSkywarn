@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# Source Some Info
+source autoskywarn.conf
+
+# Where the text will live
+NFILE="/tmp/talkit.txt"
+UFILE="/tmp/talkit.ulaw"
+
+cd $BASEDIR
+
+# Make some space
+$RM -f $NFILE $UFILE
+
+if [ $# -lt 1 ] ; then
+   echo "talkit: You have to say something!"
+   exit
+fi
+
+/bin/echo $@ > $NFILE
+
+/usr/bin/text2wave -F 8000 -otype ulaw $NFILE -o $UFILE
+/usr/sbin/asterisk -rvx "rpt localplay $NODE /tmp/${UFILE%.ulaw}" 

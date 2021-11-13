@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Turn On PUSH WEATHER TAIL MESSAGE
+#
+#
+# SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
+source /home/repeater/WRKF394-utils/AUTOSKY/autoskywarn.conf
+#
+
+WX=${BASEDIR}
+
+ENABLEFILE=alert.enbl.saytail
+
+cd $WX ;
+
+# CREATE ENABLE FILE
+$TOUCH $ENABLEFILE
+
+# CONFIRM THE ACTION
+if [ "$1" != "quiet" ] ; then
+	$TALKIT  Auto-Skywarn PUSH WEATHER TAIL MESSAGE Enabled
+fi

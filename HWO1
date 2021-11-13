@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# HWO1 - Hazardous Weather Outlook - NEAR TERM
+#
+# set -x
+#
+
+# NODE=42315
+# get node number
+source /usr/local/KF5VH/N1NODE
+
+WX=/usr/local/AUTOSKY
+# SET WSO TO THE CODE FOR YOUR LOCAL NWS FORECAST OFFICE
+WSO="LCH"
+OFILE="product.php?site=$WSO&issuedby=$WSO&product=HWO&format=txt&version=1&glossary=0"
+NFILE='hwo.txt1'
+TFILE='hwo.txtt'
+#
+cd $WX ;
+#
+# PULL THE INFORMATION FROM NWS
+/usr/bin/wget --no-check-certificate  http://forecast.weather.gov/$OFILE  2>/dev/null
+#
+# COPY THE WEIRD NAMED FILE TO SOMETHING NORMAL
+/bin/cp -f $OFILE $NFILE
+# 
+# REMOVE the WEIRDLY NAMED FILE
+/bin/rm -f $OFILE
+#
+# RESET FILE NAMES
+OFILE='hwo.txt1'
+NFILE='hwo.txt2'
+#
+# REMOVE THE NEW FILE NAME and TEMP FILE NAME
+/bin/rm -f $NFILE $TFILE
+# 
+# COPY THE EXISTING (OLD) TEXT FILE TO THE TEMP FILE
+/bin/cp -f $OFILE $TFILE
+#
+# COPY ONLY DESIRED SECTIONS OF MANY
+ex -S hwo.d1 hwo.txt1
+cp -f hwo.txtd1 $NFILE
+#
+# RESET FILE NAMES AGAIN
+OFILE='hwo.txt2'
+NFILE='hwo.txt3'
+# DO A LITTLE RESTRUCTURING
+/bin/rm -f $NFILE $TFILE
+/bin/cp -f $OFILE $TFILE
+/bin/sed -i "s/\.\.\./ , /g" $TFILE
+/bin/sed -i "s/^\.SP/SP/"    $TFILE
+/bin/cp -f $TFILE $NFILE
+#
+/usr/bin/text2wave -F 8000 -otype ulaw ${WX}/${NFILE} -o ${WX}/hwo.ulaw
+#
+/usr/sbin/asterisk -rvx "rpt localplay $NODE ${WX}/hwo" 
+#
+# DIAG - Text Script
+# cat $NFILE

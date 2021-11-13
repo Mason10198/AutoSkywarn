@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Turn Off Auto SkyWarn
+#
+#
+# SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
+source /home/repeater/WRKF394-utils/AUTOSKY/autoskywarn.conf
+#
+
+WX=${BASEDIR}
+
+ENABLEFILE=alert.enbl.master
+
+cd $WX ;
+
+# REMOVE THE ENABLE FILE
+$RM -f $ENABLEFILE
+
+# CONFIRM THE ACTION
+if [ "$1" != "quiet" ] ; then
+	$TALKIT  Auto Sky\-Warn MASTER Disabled
+fi

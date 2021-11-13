@@ -1,0 +1,106 @@
+#!/bin/bash
+#
+# set -x
+# echo $(date "+%x-%X") This is AutoSky3 - Author Steve Mahler - KF5VH - GO BOILERS!!
+#
+# SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
+source autoskywarn.conf
+
+# INTERFACE WITH  MID-JB-PRI  TO DUMP SKYWARN REPEATER ID
+MIDD=/usr/local/MID
+MIDJBD=$MIDD/MID-JB
+if [ -e $MIDD ]; then
+     $MIDJBD/jbunlock 9 2 #allows SkyWarn Repeater ID to be Replaced
+     $MIDJBD/jb 8 8       #switch to a generic ID
+     /bin/sleep 1s
+     /bin/sync
+fi
+
+# PARAM 1 IS ALL CLEAR - 0=TRUE NWS CLEAR  1=CLEAR BY BLOCKING
+BYBLK=$1
+
+#
+WX=${BASEDIR}
+
+#
+cd $WX
+#
+
+# COMMIT TO CHANGE
+# ROTATE SAVE FILES
+# ADD DATE WHEN THE DATA GOES TO DOT 1
+# COPY CURRENT MESSAGE TO SAVE MESSAGE FILE
+#    THIS BECOMES THE "Existing" Weather Conditions
+$CP -f ${FILESAVE}.2 ${FILESAVE}.3 > /dev/null 2>&1
+$CP -f ${FILESAVE}.1 ${FILESAVE}.2 > /dev/null 2>&1
+$CP -f ${FILESAVE} ${FILESAVE}.1 > /dev/null 2>&1
+echo "$(date)" >>${FILESAVE}.1
+$CP -f $NFILE2D $FILESAVE > /dev/null 2>&1
+/bin/sync
+
+# CHANGE THE ID BEFORE MAKING THE CALLS TO SPEAK THE ALL CLEAR MESSAGE
+# OTHERWISE THE CLEAR MESSAGE WILL BE FOLLOWED BY A SKYWARN ID
+# First, is MID-JB-PRI available
+if [ -e /usr/local/MID/MID-JB/jb ]; then
+     /usr/local/MID/MID-JB/jbunlock 9 2
+     /bin/sleep 1
+     /bin/sync
+     /usr/local/MID/MID-JB/jb 8 8
+fi
+
+# IF ENABLED, SAY THE INFORMATIVE MESSAGE
+# BUT IF COUNTYLE EXISTS PREPEND AUDIO TO A1FILE AUDIO AND OUTPUT TFILEW
+# "A1FILE" POINTS TO THE DESIRED MESSAGE SET IN autoskywarn.conf (asn96??)
+# SOMETHING LIKE "tones NWS HAS CLEARED ALL ALERTS, WATCHES and WARNINGS"
+# BUT IF COUNTYFE EXISTS MAKE WX TAIL WITH "audio" ADDED AT END
+if [ -e $ENABLEINFORME ]; then
+
+     $RM -f $WXT/$TFILEW $WXT/$TFILEX > /dev/null 2>&1 #Make available for output
+     if [ -e $WXA/$COUNTYLE ]; then
+          $CATWAV $WXA/$COUNTYLE $WXA/${A1FILE}.wav $WXT/$TFILEW
+     else
+          $CP -f $WXA/${A1FILE}.wav $WXT/$TFILEW > /dev/null 2>&1
+     fi
+
+     # At this point TFILEW has potentially COUNTYLE and always A1FILE
+
+     if [ -e $WXA/$COUNTYFE ]; then
+          $CATWAV $WXT/$TFILEW $WXA/$COUNTYFE $WXT/$TFILEX
+     else
+          $CP -f $WXT/$TFILEW $WXT/$TFILEX > /dev/null 2>&1
+     fi
+
+     # At this point TFILEX has
+     # potentially COUNTYLE, then A1FILE, then potentially COUNTYFE
+     # We are INFORM ENABLED so say the message
+
+     # IF BYBLK=0 OR ( BYBLK=1 AND SAYEMPTYBYBYBLK=1 )
+     # Then announce an all clear message
+
+     if [ $TMBMTM -eq 1 ]; then
+          sleep $TMBMTMSECS # used for KF5VH TMB/MTM Software, see a*conf
+     fi
+
+     if [[ ($BYBLK -eq 0) || ($BYBLK -eq 1 && $SAYEMPTYBYBLK -eq 1) ]]; then
+          echo $(date "+%x-%X") 'Playing "all clear" message...'
+          /usr/sbin/asterisk -rvx "rpt localplay $NODE ${WXT}/${TFILEX%.*}" > /dev/null 2>&1
+     fi
+
+fi
+
+# COPY WORD-SPACE AUDIO TO THE WX TAIL MESSAGE
+#    THE WORD-SPACE WAV IS ASN99
+#    THIS "CLEARS" THE WX-TAIL MESSAGE
+$RM -f $WXT/$TAILMSG > /dev/null 2>&1
+$CP -f $WXA/$VWORDSP $WXT/$TAILMSG > /dev/null 2>&1
+/bin/sync
+
+# IF ENABLED, CALL THE REPEATER CONTROL SCRIPT
+# FOR NON-SKYWARN OPS
+if [ -e $ENABLERPTCTL ]; then
+     $RPTCTL0 $BYBLK
+fi
+
+$RM -f $OLDNFILE > /dev/null 2>&1
+
+exit 0

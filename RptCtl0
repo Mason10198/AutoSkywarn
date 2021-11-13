@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# RptCtl0 - REPEATER CONTROL SCRIPT
+#      "0" - FOR SKYWARN OFF
+#   FOR NON-SKYWARN OPERATIONS
+#
+# Write your own code to control your repeater when ASW
+# declares "No watches, warnings or advisories"
+#
+# Varible RPTCTLS points to default file to pass information
+# between rptctl0 and rptctl1 ... and any other programs
+#
+#
+# set -x
+#
+
+# get the node number
+#source /usr/local/KF5VH/N1NODE
+
+# echo This is Repeater Control 0 - SkyWarn Mode OFF
+
+# FLAG BYBLK is Parameter 1 and signals if the All Clear
+# was caused by Blocking or issued by NWS. 0=NWS 1=Blocking
+#BYBLK=$1
+
+# echo BYBLK is $BYBLK
+
+# Call MID-JB-PRI UNLOCK to ALLOW
+# Priority 3 to 9 Repeater IDs (non-SkyWarn IDs)
+#/usr/local/MID/MID-JB/jbunlock 9 2
+
+# RE-ENABLE THE SAYTAIL MESSAGE JUST IN CASE IT WAS DISABLED
+#/usr/local/AUTOSKY/AutoSky.SayTail.ON
+
+# CONNECT TO DEFAULT NETWORK ALWAYS
+#set -o noglob
+# sleep 600 ; /usr/sbin/asterisk -rx "rpt fun $NODE *5300 " 2>>/dev/null &
+#set +o noglob
+# /bin/rm -f RptCtls-DiscDefNet

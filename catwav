@@ -1,0 +1,37 @@
+#!/bin/sh
+# syntax: catwav file1.wav file2.wav outputfile.wav
+#
+
+# set -x
+
+if [ $# -ne "3" ]
+then
+        echo "Must have exactly 3 parameters!"
+        echo "Syntax:  catwav file1.wav file2.wav outputfile.wav"
+        echo " "
+        exit
+fi
+#
+if [ ! -f $1 ]
+then
+        echo "P1: " $1 " is not a file."
+        echo " "
+        exit
+fi
+#
+if [ ! -f $2 ]
+then
+        echo "P2: " $2 " is not a file."
+        echo " "
+        exit
+fi
+#
+if [ -f $3 ]
+then
+        echo "P3: " $3 " is a file and would be overwritten."
+        echo " "
+        exit
+fi
+#
+/usr/bin/sox $1 $2 $3
+

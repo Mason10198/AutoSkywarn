@@ -1,0 +1,44 @@
+AUTOSKYWARN BLOCKING Version 6 - Updated 170917
+
+This is a description of AutoSkyWarn (ASW) BLOCKING CONTROL based on the Version 6 implementation.  AutoSkyWarn was created and developed by Steve Mahler – KF5VH.  Steve  says “Go Boilers”.
+The software design goals were:
+* Provide a function to block a weather event that is not important to the local SkyWarn operations or that negatively impacts repeater operation.
+* Allow user to select any of the approximately 50 weather events and block them from normal AutoSkyWarn processing.
+* Be able to determine if Blocking has caused the event list to be empty
+* Be able to control the SkyWarn OFF function via Repeater Control based on the event list being empty per NWS or per Blocking.  Also, controlling the SkyWarn ON function base on event counts.
+At this time Blocking Control is not part of “autoskywarn.conf”.  Changes are made in “AutoSky2”.  Your editing skills are important.  Incorrect syntax of your editing changes will cause the program to blow up.  It may be prudent to make a copy of the file before you start editing so that if things go bad you can start over (# cp AutoSky2 AutoSky2.orig).
+Near the top of AutoSky2 (A*2) you will find the following section of code for editing … 
+# BLOCKING SYSTEM - KILL AN EVENT IN THE LIST
+declare -a WD
+# TABLE OF EVENTS TO DROP
+# MUST MATCH CONTENTS of WS ARRAY EXACTLY (in AutoSky4)
+# DO NOT REMOVE THE FOLLOWING LINE
+WD[0]="NOT USED - THINGS LISTED HERE ARE BLOCKED"  # Do Not Delete
+# THE BELOW ARE BLOCKED FROM ASW PROCESSING WHEN MATCHING WS
+#  AND THE LINE IS UNCOMMENTED
+#   increment the index +1 each time
+# WD[1]="Beach Hazards Statement"
+# WD[2]="Something Else"
+# WD[3]="Something Different"
+# SET TO TOTAL NUMBER OF ELEMENTS IN ARRAY ("0" too!)
+WDN=${#WD[@]}	
+# echo WDN is $WDN
+
+The Blocking Control will fail and the program will cease to function properly if:
+1. The WD[0] line is deleted or commented out.
+2. The uncommented WD[X] lines have out of sequence X numbers
+3. The uncommented WD[X] lines have gaps in the X numbers
+4. The uncommented WD[X] lines have unbalanced quotation marks or unmatched quotation marks.
+5. The uncommented WD[X] lines have extra or missing space characters
+6. The uncommented WD[X] lines have a null value (…=””). You should comment out a line or delete it if you no longer need the line.  Then confirm the X numbers are in sequence.
+7. The contents between the double quotes in WD[X] do not exactly match the contents of an entry in WS[X] in AutoSky4.  The X numbers do not have to match.
+When the WD[X] table is properly constructed, ASW will ignore weather events in WD[X] lines.  This leads to the possibility where the weather event list is effectively empty, yet the NWS still is posting alerts but only blocked events.
+The default action when Blocking causes the event list to be totally empty is to:
+a) Not announce the All Clear message
+b) Call Repeater Control and signal that Blocking has generated an All Clear situation, but the NWS is still posting blocked events.  This will allow you the take the repeater out of SkyWarn ON mode, but not announce an All Clear (I believe that this is an important concept).
+c) When the NWS signals all clear,  play the All Clear message
+If you wish to play the All Clear message when Blocking has caused the event list to be empty then edit “autoskywarn.conf”.  Find variable SAYEMPTYBYBLK and change the contents from from “0” to “1”.  If you do this, you will hear the Blocking empty message. This will be followed by a second All Clear message when NWS posts an All Clear.
+If you Block an event please take into consideration that your local users should know that a NWS weather event is not being reported.  By the same token if you set SAYEMPTYBYBLK to “1” your local users should know that when they hear an All Clear the National Weather Service could still be posting a Watch, Warning, Advisory or Statement event.
+AutoSkyWarn Version 6 Blocking Control – Version 170917    Page 1
+
+
