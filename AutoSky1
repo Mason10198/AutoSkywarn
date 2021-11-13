@@ -6,7 +6,8 @@
 # syntax: AutoSky1 {testnumber}
 #
 # SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
-source autoskywarn.conf
+BASEDIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+source $BASEDIR/autoskywarn.conf
 
 #
 WX=${BASEDIR}
@@ -111,7 +112,7 @@ if cmp -s "$NFILE2" "$FILESAVE"; then
    echo $(date "+%x-%X") "Data is the same, nothing to do..."
 else
    echo $(date "+%x-%X") "New data found..."
-   ./AutoSky2
+   sudo $BASEDIR/AutoSky2
 fi
 
 exit -94

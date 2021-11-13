@@ -4,7 +4,8 @@
 # echo $(date "+%x-%X") This is AutoSky2 - Author Steve Mahler - KF5VH - GO BOILERS!!
 #
 # SOURCE THIS FILE TO OBTAIN VARIABLE SETTINGS
-source autoskywarn.conf
+BASEDIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+source $BASEDIR/autoskywarn.conf
 
 #
 WX=${BASEDIR}
@@ -101,7 +102,7 @@ case $Xresult in
      #           echo $(date "+%x-%X")  AutoSky2 NO LINES IN NFILE4 - BLOCKED CLEAR
      #           echo $(date "+%x-%X")  SO CALL AutoSky3
      # FIRST PARAM = 1 PSEUDO CLEAR VIA BLOCKING
-     ./AutoSky3 1
+     sudo $BASEDIR/AutoSky3 1
      exit $?
      ;;
 *)
@@ -112,11 +113,11 @@ case $Xresult in
      if [ $Yresult -eq 0 ]; then
           #               echo $(date "+%x-%X") AutoSky2 MATCHED - NO W, W or As so CALL AutoSky3
           # FIRST PARAM = 0 TRUE ALL CLEAR
-          ./AutoSky3 0
+          sudo $BASEDIR/AutoSky3 0
           exit $?
      else
           #               echo $(date "+%x-%X") AutoSky2 NO MATCH - WE HAVE A CHANGE IN THE WEATHER so CALL AutoSky4
-          ./AutoSky4
+          sudo $BASEDIR/AutoSky4
           exit $?
      fi
      ;;
