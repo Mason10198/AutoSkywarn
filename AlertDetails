@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source autoskywarn.conf
+BASEDIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+source $BASEDIR/autoskywarn.conf
 
 WX=$BASEDIR
 NFILE='/tmp/saysum.txt1'
