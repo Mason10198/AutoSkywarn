@@ -41,12 +41,12 @@ RESULT=$(/bin/cat /tmp/saysum.wc)
 #
 if [ $RESULT -eq 0 ]; then
      msg="There are no weather alerts at this time."
-     # /usr/bin/text2wave -F 8000 -otype ulaw /tmp/saysum.bo -o /tmp/saysum.ulaw
      msgurl=$(printf "%s\n" "$url$msg" | sed 's/ /%20/g')
      wget -q -U Mozilla -O "/tmp/saysummsg.wav" $msgurl
+     sox -V /tmp/saysummsg.wav -r 8000 -c 1 -t ul /tmp/saysummsg.ulaw &>/dev/null
+     rm /tmp/saysummsg.wav
      sync
-     /usr/sbin/asterisk -rvx "rpt localplay $NODE /tmp/saysummsg"
-     sync
+     /usr/sbin/asterisk -rvx "rpt localplay $NODE /tmp/saysummsg" &>/dev/null
      exit 0
 fi
 #
