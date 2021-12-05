@@ -404,6 +404,14 @@ $CP -f $WXA/$VWORDSP $WXT/$TAILMSG >/dev/null 2>&1
 #
 ################## END BUILDING WX-TAIL #############
 #
+
+$CP -f $NFILE5 $NFILE6
+sed -i 's/\Advisory.*/Advisory/' $NFILE6 >/dev/null 2>&1
+sed -i 's/\Watch.*/Watch/' $NFILE6 >/dev/null 2>&1
+sed -i 's/\Warning.*/Warning/' $NFILE6 >/dev/null 2>&1
+sed -i 's/\Statement.*/Statement/' $NFILE6 >/dev/null 2>&1
+sed -i 's/\Alert.*/Alert/' $NFILE6 >/dev/null 2>&1
+
 if [[ $FOUNDONE -eq 0 ]]; then
 
       # INTERFACE WITH  MID-JB-PRI  TO SET SKYWARN REPEATER ID
@@ -420,7 +428,7 @@ if [[ $FOUNDONE -eq 0 ]]; then
       echo $(date "+%x-%X") "Playing error tone!"
       /usr/sbin/asterisk -rvx "rpt localplay $NODE $WXA/$A3FILE" >/dev/null 2>&1
 else
-      if cmp -s "$NFILE5" "$OLDNFILE"; then # If alert is the same as the last alert
+      if cmp -s "$NFILE6" "$OLDNFILE"; then # If alert is the same as the last alert
             echo $(date "+%x-%X") "I think this is the same announcement I said earlier, so I'm going to skip it."
       else
             # IF ENABLED
@@ -448,7 +456,7 @@ else
                   echo $(date "+%x-%X") 'Playing tail-message...'
                   /usr/sbin/asterisk -rvx "rpt localplay $NODE /tmp/$TAILMSGBASE" >/dev/null 2>&1 # Play the tailmessage we temporarily moved
             fi
-            $CP -f $NFILE5 $OLDNFILE >/dev/null 2>&1
+            $CP -f $NFILE6 $OLDNFILE >/dev/null 2>&1
             # Wait to be sure Asterisk has played our alert, then
             # move the tailmessage back where it goes - N5LSN
             echo $(date "+%x-%X") 'Waiting 30 seconds for Asterisk to finish up...'
@@ -464,5 +472,3 @@ fi
 if [ -e $ENABLERPTCTL ]; then
       $RPTCTL1 $BOVWARN $BOVWATC $BOVADVS $BOVSPCL $MOREFLAG $RUNTOT
 fi
-
-exit 0

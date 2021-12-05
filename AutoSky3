@@ -103,5 +103,3 @@ if [ -e $ENABLERPTCTL ]; then
 fi
 
 $RM -f $OLDNFILE > /dev/null 2>&1
-
-exit 0

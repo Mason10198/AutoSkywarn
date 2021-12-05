@@ -114,5 +114,3 @@ else
    echo $(date "+%x-%X") "New data found..."
    sudo $BASEDIR/AutoSky2
 fi
-
-exit -94

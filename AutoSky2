@@ -122,5 +122,3 @@ case $Xresult in
      fi
      ;;
 esac
-
-exit -94
