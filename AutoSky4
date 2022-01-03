@@ -405,12 +405,9 @@ $CP -f $WXA/$VWORDSP $WXT/$TAILMSG >/dev/null 2>&1
 ################## END BUILDING WX-TAIL #############
 #
 
-$CP -f $NFILE5 $NFILE6
-sed -i 's/\Advisory.*/Advisory/' $NFILE6 >/dev/null 2>&1
-sed -i 's/\Watch.*/Watch/' $NFILE6 >/dev/null 2>&1
-sed -i 's/\Warning.*/Warning/' $NFILE6 >/dev/null 2>&1
-sed -i 's/\Statement.*/Statement/' $NFILE6 >/dev/null 2>&1
-sed -i 's/\Alert.*/Alert/' $NFILE6 >/dev/null 2>&1
+sed -i 's/\ issued.*//' $NFILE5
+
+awk '!seen[$0]++' $NFILE5 > $NFILE6
 
 if [[ $FOUNDONE -eq 0 ]]; then
 
@@ -457,13 +454,14 @@ else
                   /usr/sbin/asterisk -rvx "rpt localplay $NODE /tmp/$TAILMSGBASE" >/dev/null 2>&1 # Play the tailmessage we temporarily moved
             fi
             $CP -f $NFILE6 $OLDNFILE >/dev/null 2>&1
-            # Wait to be sure Asterisk has played our alert, then
-            # move the tailmessage back where it goes - N5LSN
+            # Wait to be sure Asterisk has played our alert - N5LSN
             echo $(date "+%x-%X") 'Waiting 30 seconds for Asterisk to finish up...'
             sleep 30
-            $MV /tmp/$TAILMSG $WXT/$TAILMSG >/dev/null 2>&1
       fi
 fi
+
+# Move the tailmessage back where it goes - N5LSN
+$MV /tmp/$TAILMSG $WXT/$TAILMSG >/dev/null 2>&1
 
 /bin/sync
 
