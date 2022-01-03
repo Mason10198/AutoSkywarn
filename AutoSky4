@@ -264,7 +264,8 @@ if [ -e $ENABLEBOBTAIL ]; then
       #     # IF WE TRUNCATED THE LENGTH SAY "AND MORE"
       if [ $MOREFLAG -eq 1 ]; then
             if [ $RUNTOT -ge $LIMTOT ]; then
-                  /bin/echo "AUTOSKY MORE" >>$NFILE5
+                  #/bin/echo "AUTOSKY MORE" >> $NFILE5 DISABLED DUE TO GETTING DUPLICATE ALERTS NEED TO FIND AN ACTUAL SOLUTION AT SOME POINT
+                  echo "The AUTOSKY MORE function has been removed"
             fi
       fi
 #
