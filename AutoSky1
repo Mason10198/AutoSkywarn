@@ -27,6 +27,10 @@ fi
 
 # PULL THE INFORMATION FROM NWS
 /usr/bin/wget --no-check-certificate alerts.weather.gov/cap/$OFILE 2>/dev/null
+if [ $(wc -w < $OFILE) -le 5 ]; then
+   echo "Downloaded file was empty!"
+   exit 0
+fi
 
 # COPY THE WEIRD NAMED FILE TO SOMETHING NORMAL
 $CP -f $OFILE $NFILE1 > /dev/null 2>&1
